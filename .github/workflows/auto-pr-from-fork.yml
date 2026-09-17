@@ -110,6 +110,9 @@ jobs:
           BRANCH: ${{ github.ref_name }}
           TITLE: ${{ steps.meta.outputs.title }}
           PRACTICALS: ${{ steps.meta.outputs.practicals }}
+          FILE_LIST: ${{ steps.meta.outputs.file_list }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_ACTOR: ${{ github.actor }}
         run: |
           python3 - << 'PY'
           import os, subprocess, json, sys, urllib.request, urllib.error
@@ -218,8 +221,3 @@ jobs:
                       # Do not fail the workflow — poller is fallback
                   sys.exit(0)
           PY
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITHUB_REPOSITORY: ${{ github.repository }}
-          GITHUB_ACTOR: ${{ github.actor }}
-          FILE_LIST: ${{ steps.meta.outputs.file_list }}
