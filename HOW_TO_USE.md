@@ -56,7 +56,7 @@ Verify remote points to YOU:
 git remote -v
 # origin  https://github.com/<YOUR-USERNAME>/Competitive_Programming.git (fetch)
 # origin  https://github.com/<YOUR-USERNAME>/Competitive_Programming.git (push)
-#            ^^^^^^^^^^^^^^^ YOUR username, not ankan-web
+#                            ^^^^^^^^^^^^^^^ YOUR username, not ankan-web
 ```
 
 If it shows `ankan-web`, fix it:
