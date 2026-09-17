@@ -1,0 +1,17 @@
+name: Branch Protection Notice
+# Informational — reminds owner to protect main if not yet done
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  notice:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          echo "Reminder: Protect 'main' in Settings → Branches → Add rule:"
+          echo "  Require pull request, Require status checks (validate), Block force push."
+          echo "Also enable: Settings → Actions → Allow GitHub Actions to create and approve PRs."

@@ -1,0 +1,49 @@
+name: Poll Forks & Create PRs
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"   # every 10 minutes
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+  metadata: read
+
+concurrency:
+  group: poll-forks
+  cancel-in-progress: false
+
+jobs:
+  poll:
+    runs-on: ubuntu-latest
+    # Runs in UPSTREAM with GITHUB_TOKEN — never executes fork code
+    permissions:
+      contents: read
+      pull-requests: write
+      metadata: read
+    steps:
+      - name: Checkout upstream main
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install deps
+        run: pip install pyyaml requests 2>&1 | tail -5
+
+      - name: Poll forks and create/update PRs
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # To use a PAT for higher rate limit, set repository secret FORK_SYNC_PAT
+          # and uncomment below:
+          # GH_TOKEN: ${{ secrets.FORK_SYNC_PAT || secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          BASE_BRANCH: main
+        run: |
+          python3 scripts/poll_forks.py

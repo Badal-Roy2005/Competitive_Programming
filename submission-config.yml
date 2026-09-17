@@ -1,0 +1,52 @@
+# Competitive Programming Lab — Submission Configuration
+# Edit this file to change validation rules. No workflow change needed.
+
+practical_prefix: "Practical-"
+
+# Practical directories expected: Practical-01, Practical-02, ... Practical-10
+# Pattern validated: Practical-XX where XX is 01-99
+practical_range: [1, 10]
+
+allowed_extensions:
+  - cpp
+  - c
+  - py
+  - java
+
+# Files matching these globs are REJECTED (validation fails)
+prohibited_patterns:
+  - "*.exe"
+  - "*.out"
+  - "*.o"
+  - "*.obj"
+  - "*.class"
+  - "*.pyc"
+  - "*.log"
+  - "__pycache__"
+  - ".vscode"
+  - ".idea"
+  - "node_modules"
+  - ".DS_Store"
+
+# Also block any edit to these paths from student PRs (hygiene)
+protected_paths:
+  - ".github/"
+  - "submission-config.yml"
+  - "scripts/"
+
+# Size limits
+max_file_size_mb: 5
+max_total_size_mb: 50
+
+# Student directory must exist: Practical-XX/<StudentName>/file
+require_student_dir: true
+
+# If true, automation creates one PR per practical (auto-branch per practical).
+# If false (default/recommended), one PR per student's fork branch aggregates all practicals.
+# See CONTRIBUTING.md for trade-off (GitHub allows 1 open PR per head branch).
+per_practical_pr: false
+
+# Compilation: attempt for these extensions
+compile_extensions:
+  - cpp
+  - c

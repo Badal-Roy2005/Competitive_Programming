@@ -1,0 +1,87 @@
+name: Validate Submission
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    # NEVER grant write or secrets here — this runs untrusted fork code context
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - name: Checkout PR merge commit (untrusted)
+        uses: actions/checkout@v4
+        with:
+          # PR merge commit — safe for testing, no secrets exposed
+          ref: refs/pull/${{ github.event.pull_request.number }}/merge
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Fetch base for diff
+        run: git fetch origin main --depth=50
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y g++ gcc default-jdk python3 2>&1 | tail -20
+          pip install pyyaml 2>&1 | tail -5
+
+      - name: Run submission validation
+        id: validate
+        run: |
+          chmod +x scripts/validate.sh
+          # validate.sh writes results to validation_result.txt and validation_summary.md
+          bash scripts/validate.sh "${{ github.event.pull_request.base.sha }}" "${{ github.event.pull_request.head.sha }}" || true
+          cat validation_result.txt || true
+          echo "---summary---"
+          cat validation_summary.md || true
+
+      - name: Compile check (isolated per file)
+        id: compile
+        run: |
+          python3 scripts/compile_check.py || true
+          cat compile_result.txt || true
+
+      - name: Upload validation artefact (for publisher job)
+        uses: actions/upload-artifact@v4
+        with:
+          name: validation-results-${{ github.event.pull_request.number }}
+          path: |
+            validation_result.txt
+            validation_summary.md
+            compile_result.txt
+            compile_summary.md
+          retention-days: 7
+          if-no-files-found: warn
+
+      - name: Enforce — fail if validation failed
+        run: |
+          if grep -q "^STATUS=FAIL" validation_result.txt 2>/dev/null; then
+            echo "::error::Validation failed — see validation_summary.md"
+            cat validation_summary.md
+            exit 1
+          fi
+          if grep -q "^COMPILE_STATUS=FAIL" compile_result.txt 2>/dev/null; then
+            echo "::error::Compilation failed — see compile_summary.md"
+            cat compile_summary.md
+            exit 1
+          fi
+          echo "All checks passed."
+
+  # NOTE: No privileged comment job here. Comments/labels that need write
+  # are handled by publish-results.yml via workflow_run (trusted base code).
+  # This avoids pull_request_target pwn-request vulnerabilities.
+#edit
